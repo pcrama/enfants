@@ -1,0 +1,11 @@
+* Utilisation
+
+#+begin_src shell :exports code
+  repertoire_hote=/media/sf_winphilippe/pi-sync
+  sudo docker run --rm -p 8888:8888 -e JUPYTER_ENABLE_LAB=yes -v /etc/group:/etc/group:ro  -v $repertoire_hote:/home/jovyan/work -u jovyan:$(stat -c '%g' $repertoire_hote) jupyter/scipy-notebook
+#+end_src
+
+* Références
+1. "Functional Geometry" by Peter Henderson (in Lisp and Functional Programming, 1982)
+2. [[https://mathr.co.uk/blog/2013-04-26_fish_variations.html][Fish variations]]
+3. [[https://mathr.co.uk/blog/2013-01-03_eschers_butterflies.html][Escher's butterflies]] and [[https://mathr.co.uk/blog/2013-01-11_butterfly_variations.html][variations]]
