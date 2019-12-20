@@ -7,6 +7,7 @@
 import math
 import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib import image
 
 BLANC_TRANSPARENT = [1.0, 1.0, 1.0, 0.0]
 
@@ -122,6 +123,55 @@ def decoupe_rectangulaire(image, coin_1, coin_2, couleur_autour=BLANC_TRANSPAREN
             return couleur_autour
     return image_tronquee
 
+def image_pixelisee(fichier, coin_1, coin_2, couleur_autour=BLANC_TRANSPARENT, opacite=1.0):
+    "Image à partir d'un fichier, insérée dans le rectangle donné, entouré de blanc transparent"
+    data = image.imread(fichier)
+    hauteur_px, largeur_px, _ = data.shape
+    bbox = [[min(coin_1[0], coin_2[0]), min(coin_1[1], coin_2[1])],
+            [max(coin_1[0], coin_2[0]), max(coin_1[1], coin_2[1])]]
+    hauteur = bbox[1][1] - bbox[0][1]
+    largeur = bbox[1][0] - bbox[0][0]
+    resolution_verticale = hauteur_px / hauteur
+    resolution_horizontale = largeur_px / largeur
+    def pixelise(x, y):
+        if (bbox[0][0] <= x <= bbox[1][0]) and (bbox[0][1] <= y <= bbox[1][1]):
+            dx = x - bbox[0][0]
+            dy = bbox[1][1] - y
+            p = data[min(math.floor(dy * resolution_verticale),
+                         hauteur_px - 1),
+                     min(math.floor(dx * resolution_horizontale),
+                         largeur_px - 1)]
+            return [p[0], p[1], p[2], opacite]
+        else:
+            return couleur_autour
+    return pixelise
+
+def decoupe_polygone_convexe(image, coins, couleur_autour=BLANC_TRANSPARENT):
+    "Masque toute l'image autour du polygone et remplace l'extérieur par une couleur constante"
+    cotes = zip(coins, [coins[-1], *coins[:-1]])
+    milieu = [sum([c[0] for c in coins]) / len(coins),
+              sum([c[1] for c in coins]) / len(coins)]
+    def coefficients(cote):
+        # calcule les coefficients de la droite a*x + b*y + c = 0 tels que a*x_milieu + b*y_milieu + c < 0
+        x1, y1 = cote[0]
+        x2, y2 = cote[1]
+        dx = x2 - x1
+        dy = y2 - y1
+        a = -dy
+        b = dx
+        c = -(a * x1 + b * y1)
+        if a * milieu[0] + b * milieu[1] + c < 0:
+            return (a, b, c)
+        else:
+            return (-a, -b, -c)
+    coeffs = [coefficients(c) for c in cotes]
+    def image_tronquee(x, y):
+        for a, b, c in coeffs:
+            if a * x + b * y + c > 0:
+                return couleur_autour
+        return image(x, y)
+    return image_tronquee
+
 def decoupe_circulaire(image, centre, rayon, couleur_autour=BLANC_TRANSPARENT):
     "Masque toute l'image autour du cercle et remplace l'extérieur par une couleur constante"
     rayon_carre = rayon * rayon
@@ -133,6 +183,28 @@ def decoupe_circulaire(image, centre, rayon, couleur_autour=BLANC_TRANSPARENT):
         else:
             return couleur_autour
     return image_tronquee
+
+def deforme_rectangle_en_trapeze(image, largeur, hauteur, petite_largeur, couleur_autour=BLANC_TRANSPARENT):
+    """Reserre le haut d'un rectangle pour en faire un trapèze symétrique, déformant l'image à l'intérieur
+
+                                              <-*-> *=petite_largeur
+    Avant: +-----------+ ^         Après:     +---+     ^
+           |           | |                   /     \    |
+           |           | hauteur            /       \ hauteur
+           |           | |                 /         \  |
+           +-----------+ v                +-----------+ v
+           <--largeur-->                  <--largeur-->"""
+    def image_deformee(x, y):
+        if (0 <= x <= largeur) and (0 <= y <= hauteur):
+            ma_largeur = petite_largeur + (largeur - petite_largeur) * (hauteur - y) / hauteur
+            if (x < (largeur - ma_largeur) / 2) or ((largeur + ma_largeur) / 2 < x):
+                return couleur_autour
+            else:
+                mon_x = largeur * (x - (largeur - ma_largeur) / 2) / ma_largeur
+                return image(mon_x, y)
+        else:
+            return image(x, y)
+    return image_deformee
 
 def projette(image, coin_1, coin_2, pixels_par_unite):
     "Rend l'image visible, limité au rectangle défini par les coins et à la résolution donnée"
@@ -155,6 +227,10 @@ def projette(image, coin_1, coin_2, pixels_par_unite):
 def montre(image, coin_1, coin_2, pixels_par_unite):
     "Affiche la partie l'image limité au rectangle défini par les coins"
     plt.imshow(projette(image, coin_1, coin_2, pixels_par_unite))
+
+def sauve(fichier, image, coin_1, coin_2, pixels_par_unite):
+    "Sauce la partie l'image limité au rectangle défini par les coins dans un fichier"
+    plt.imsave(fichier, projette(image, coin_1, coin_2, pixels_par_unite))
 
 def opaque(image, opacite=1.0):
     "Rend l'image opaque (vois aussi superpose)"
@@ -239,8 +315,9 @@ def segment(point_1, point_2, epaisseur, rgba):
 
 def multi_segments(segments, epaisseur, rgba):
     "Plus efficace que superpose(segment(...), segment(...), ...)"
+    images_segments = [segment(c[0], c[1], epaisseur, rgba) for c in segments]
     def image(x, y):
-        for s in segments:
+        for s in images_segments:
             v = s(x, y)
             if v == rgba:
                 return v
@@ -250,14 +327,40 @@ def multi_segments(segments, epaisseur, rgba):
 def polygone(coins, epaisseur, rgba):
     "Dessine un polygone reliant les coins"
     cotes = zip(coins, [coins[-1], *coins[:-1]])
-    segments = [segment(c[0], c[1], epaisseur, rgba) for c in cotes]
-    return multi_segments(segments, epaisseur, rgba)
+    return multi_segments(cotes, epaisseur, rgba)
 
 def polygone_regulier(centre, rayon, cotes, epaisseur, rgba):
     points = [[centre[0] + rayon * math.cos(2 * math.pi / cotes * i),
                centre[1] + rayon * math.sin(2 * math.pi / cotes * i)]
               for i in range(cotes)]
     return polygone(points, epaisseur, rgba)
+
+def trapezes_empiles_en_triangle(base, limite=0.01):
+    "Coordonées de trapèzes empilés pour former un triangle equilatéral"
+    def trapeze(x0, y0, base):
+        return [[x0, y0], [x0 + base, y0], [x0 + base * 0.75, y0 + base * math.sqrt(3) / 4], [x0 + base * 0.25, y0 + base * math.sqrt(3) / 4]]
+    trapezes = [trapeze(0, 0, base)]
+    while base > limite:
+        x0, y0 = trapezes[-1][3]
+        base = trapezes[-1][2][0] - x0
+        trapezes.append(trapeze(x0, y0, base))
+    return trapezes
+
+def comprime_dans_un_cercle(image, rayon, couleur_autour=BLANC_TRANSPARENT):
+    rayon_carre = rayon * rayon
+    def image_comprimee(x, y):
+        r_carre = x * x + y * y
+        if r_carre >= rayon_carre:
+            return couleur_autour
+        # si nous arrivons ici, nous sommes à l'intérieur du cercle.
+        # Cherchons le rayon `s' qui est projeté sur celui-ci.
+        #        s               r
+        # r = ------- <=> s = -------
+        #      1 + s           1 - r
+        r = math.sqrt(r_carre)
+        s = r / (rayon - r)
+        return image(x / r * s, y / r * s)
+    return image_comprimee
 
 def im1(x, y):
     return [max(0, min(1, (x + 1) / 1.5)), 0, 0, 0.99]
