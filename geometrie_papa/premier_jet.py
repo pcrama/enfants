@@ -300,7 +300,11 @@ def segment(point_1, point_2, epaisseur, rgba):
     dx /= longueur
     dy /= longueur
     demi_epaisseur = epaisseur / 2.0
+    xi, yi = [min(p1, p2) - demi_epaisseur for p1, p2 in zip(point_1, point_2)]
+    xa, ya = [max(p1, p2) + demi_epaisseur for p1, p2 in zip(point_1, point_2)]
     def image_ligne(x, y):
+        if not((xi <= x <= xa) and (yi <= y <= ya)):
+            return BLANC_TRANSPARENT
         a = x - point_1[0]
         b = y - point_1[1]
         if abs(-a * dy + b * dx) <= demi_epaisseur:
