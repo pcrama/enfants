@@ -309,7 +309,7 @@ def segment(point_1, point_2, epaisseur, rgba):
         b = y - point_1[1]
         if abs(-a * dy + b * dx) <= demi_epaisseur:
             # nous sommes dans la ligne, mais sommes-nous aussi dans le segment?
-            if 0 <= a * dx + b * dy <= longueur:
+            if -demi_epaisseur <= a * dx + b * dy <= longueur + demi_epaisseur:
                 return rgba
             else:
                 return BLANC_TRANSPARENT
