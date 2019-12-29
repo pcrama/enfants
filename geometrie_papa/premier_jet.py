@@ -229,7 +229,7 @@ def montre(image, coin_1, coin_2, pixels_par_unite):
     plt.imshow(projette(image, coin_1, coin_2, pixels_par_unite))
 
 def sauve(fichier, image, coin_1, coin_2, pixels_par_unite):
-    "Sauce la partie l'image limité au rectangle défini par les coins dans un fichier"
+    "Sauve la partie l'image limité au rectangle défini par les coins dans un fichier"
     plt.imsave(fichier, projette(image, coin_1, coin_2, pixels_par_unite))
 
 def opaque(image, opacite=1.0):

@@ -6,6 +6,7 @@
 #+end_src
 
 * Références
-1. "Functional Geometry" by Peter Henderson (in Lisp and Functional Programming, 1982)
+1. [[https://eprints.soton.ac.uk/257577/1/funcgeo2.pdf][Functional Geometry]] by Peter Henderson (2002; there was an earlier version
+   in Lisp and Functional Programming, 1982)
 2. [[https://mathr.co.uk/blog/2013-04-26_fish_variations.html][Fish variations]]
 3. [[https://mathr.co.uk/blog/2013-01-03_eschers_butterflies.html][Escher's butterflies]] and [[https://mathr.co.uk/blog/2013-01-11_butterfly_variations.html][variations]]
