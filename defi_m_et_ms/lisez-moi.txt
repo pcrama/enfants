@@ -1,0 +1,43 @@
+Défi M&Ms
+---------
+
+Écrivez une fonction ou un programme qui calcule combien de M&Ms il
+faut pour la situation imaginaire suivante: nous jouons au Rikiki par
+internet avec d'autres membres de la famille et à chaque carte que
+nous jouons, nous mangeons un M&Ms.  Combien de M&Ms chacun de nous
+aurait-il (ou elle) mangé à la fin de la partie?  Et combien de M&Ms
+faudrait-il en tout?
+
+Pour rappel, et pour donner un exemple, en imaginant que nous jouons à
+8, il y aura une première manche avec 6 cartes, puis 5 cartes et ainsi
+de suite jusqu'à une manche avec une carte.  Ensuite, ça remonte: il y
+aurait une manche à 2 cartes, puis à 3 et ainsi de suite jusqu'à 6
+cartes.  En tout, ça ferait 41 M&Ms par joueur.
+
+Si la première manche se joue avec 13 cartes, en tout, chaque joueur
+aurait besoin de 181 M&Ms.
+
+
+
+def m_et_ms_en_tout(joueurs_chez_nous, joueurs_ailleurs):
+    # votre code ...  n'hésitez pas à me montrer ce que vous avez
+    # essayé et où vous êtes bloqués.
+    #
+    # Un détail: la division entière s'écrit //
+    #
+    # Comparez print(10 / 3) et print(10 // 3)
+
+
+print(m_et_ms_en_tout(1, 7))
+# imprime 41
+print(m_et_ms_en_tout(2, 6))
+# imprime 82
+print(m_et_ms_en_tout(1, 3))
+# imprime 181
+print(m_et_ms_en_tout(4, 0))
+# imprime 724
+
+
+Je promets de ne pas appeler la fonction avec un nombre de joueurs
+total inférieur à 2, ni avec un nombre de joueurs total supérieur à
+26.
